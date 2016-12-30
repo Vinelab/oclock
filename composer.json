@@ -1,0 +1,28 @@
+{
+    "name": "vinelab/oclock",
+    "description": "Laravel package that reports scheduled events.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Abed Halawi",
+            "email": "abed.halawi@vinelab.com"
+        }
+    ],
+    "require": {
+        "mtdowling/cron-expression": "^1.1",
+        "predis/predis": "^1.1",
+        "jenssegers/mongodb": "^3.1",
+        "illuminate/console": "^5.3",
+        "illuminate/support": "^5.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "OClock\\": "src/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.7",
+        "mockery/mockery": "^0.9.7"
+    }
+}
