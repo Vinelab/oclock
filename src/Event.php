@@ -12,12 +12,13 @@
 namespace OClock;
 
 use Cron\CronExpression;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Console\Scheduling\Event as ScheduleEvent;
 
 /**
  * @author Abed Halawi <abed.halawi@vinelab.com>
  */
-class Event
+class Event implements Arrayable
 {
     /**
      * The unique identifier of this event.
