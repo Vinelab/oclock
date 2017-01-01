@@ -11,9 +11,11 @@
 
 namespace OClock;
 
+use DB;
 use OClock\Commands\Report;
 use OClock\Storage\Drivers\Redis;
 use OClock\Storage\StoreInterface;
+use OClock\Storage\Drivers\MongoDB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Redis as RedisClient;
@@ -33,7 +35,7 @@ class OClockServiceProvider extends ServiceProvider
         }
 
         $this->app->bind(StoreInterface::class, function () {
-            return new Redis(RedisClient::connection());
+            return new MongoDB(DB::connection());
         });
 
         // schedule reporting event
