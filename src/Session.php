@@ -61,19 +61,28 @@ class Session implements Arrayable
      */
     private $finishedAt;
 
+    /**
+     * The output from this session.
+     *
+     * @var string
+     */
+    private $output;
+
     public function __construct(
         Source $source,
         Event $event,
         $isRunning = true,
         $id = null,
         $createdAt = null,
-        $finishedAt = null
+        $finishedAt = null,
+        $output = ''
     ) {
         $this->event = $event;
         $this->source = $source;
         $this->isRunning = $isRunning;
         $this->finishedAt = $this->dateTime($finishedAt);
         $this->createdAt = $this->dateTime($createdAt);
+        $this->output = $output;
 
         $this->id = ($id) ? $id : $this->generateId();
     }
@@ -89,9 +98,10 @@ class Session implements Arrayable
         $isRunning = true,
         $id = null,
         $createdAt = null,
-        $finishedAt = null
+        $finishedAt = null,
+        $output = ''
     ) {
-        return new static($source, $event, $isRunning, $id, $createdAt, $finishedAt);
+        return new static($source, $event, $isRunning, $id, $createdAt, $finishedAt, $output);
     }
 
     /**
@@ -128,6 +138,7 @@ class Session implements Arrayable
             'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
             'finished_at' => $this->finishedAt ? $this->finishedAt->format('Y-m-d H:i:s') : null,
             'is_running' => $this->isRunning,
+            'output' => $this->output,
         ];
     }
 

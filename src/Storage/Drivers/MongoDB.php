@@ -11,7 +11,6 @@
 
 namespace OClock\Storage\Drivers;
 
-use DateTime;
 use OClock\Event;
 use OClock\Source;
 use OClock\Session;
@@ -116,7 +115,8 @@ class MongoDB implements StoreInterface
                 $session['is_running'],
                 $session['id'],
                 $session['created_at'],
-                $session['finished_at']
+                $session['finished_at'],
+                $session['output']
             );
         });
     }
