@@ -15,9 +15,9 @@ across the different applications (services, projects, etc.). The way OClock ach
 each of these runs throughout the day is a Session.
 - **Schedule**: A collection of Events with their Source information.
 
-1- Send the session output to a file where we can read them later
-2- Set the `before` hook on each of the events to store their session information in the database every time they start.
-3- Set the `after` hook on each of the events to:
+1. Send the session output to a file where we can read them later
+2. Set the `before` hook on each of the events to store their session information in the database every time they start.
+3. Set the `after` hook on each of the events to:
     - update their session information and mark the session as done, meanwhile the running status flag `is_running` will be marked as `true`.
     - Read the session output from the file and add it to the Session record in the database
     - Remove the file
