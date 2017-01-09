@@ -15,6 +15,7 @@ use DB;
 use OClock\Storage\StoreInterface;
 use OClock\Storage\Drivers\MongoDB;
 use Illuminate\Support\ServiceProvider;
+use Jenssegers\Mongodb\MongodbServiceProvider;
 
 /**
  * @author Abed Halawi <abed.halawi@vinelab.com>
@@ -39,5 +40,7 @@ class OClockServiceProvider extends ServiceProvider
             $loader = \Illuminate\Foundation\AliasLoader::getInstance();
             $loader->alias('OClock', 'OClock\Facade\OClock');
         });
+
+        $this->app->register(MongodbServiceProvider::class);
     }
 }
