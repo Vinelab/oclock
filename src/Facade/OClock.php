@@ -9,12 +9,22 @@
  * file that was distributed with this source code.
  */
 
-namespace OClock\Storage\Redis\Keys;
+namespace OClock\Facade;
+
+use Illuminate\Support\Facades\Facade;
 
 /**
  * @author Abed Halawi <abed.halawi@vinelab.com>
  */
-class ScheduleKey extends RedisKey
+class OClock extends Facade
 {
-    protected $key = 'schedules';
+    /**
+     * Get the registered name of the component.
+     *
+     * @return string
+     */
+    protected static function getFacadeAccessor()
+    {
+        return 'vinelab.oclock';
+    }
 }

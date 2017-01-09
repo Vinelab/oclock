@@ -11,9 +11,13 @@
 
 namespace OClock\Storage\Drivers;
 
+use DateTime;
+use OClock\Event;
+use OClock\Source;
+use OClock\Session;
+use OClock\Schedule;
 use Illuminate\Support\Collection;
 use Jenssegers\Mongodb\Connection;
-use OClock\Schedule;
 use OClock\Storage\StoreInterface;
 
 /**
@@ -28,7 +32,8 @@ class MongoDB implements StoreInterface
      */
     private $db;
 
-    const COLLECTION = 'schedules';
+    const SCHEDULES_COLLECTION = 'schedules';
+    const SESSIONS_COLLECTION = 'schedules_sessions';
 
     public function __construct(Connection $connection)
     {
@@ -37,20 +42,81 @@ class MongoDB implements StoreInterface
 
     public function save(Schedule $schedule)
     {
-        $this->db->collection(self::COLLECTION)
-            ->where(['source_id' => $schedule->sourceId()])
+        return $this->db->collection(self::SCHEDULES_COLLECTION)
+            ->where(['source.id' => $schedule->source()->id()])
             ->update($schedule->toArray(), ['upsert' => true]);
     }
 
-    public function all()
+    public function schedules()
     {
-        $schedules = $this->db->collection(self::COLLECTION)->get();
+        $schedules = $this->db->collection(self::SCHEDULES_COLLECTION)->get();
 
         return $schedules->map(function ($schedule) {
-            return Schedule::makeWithMetadata($schedule['source_id'],
-                $schedule['source_name'],
-                Collection::make($schedule['events']),
+            $events = Collection::make($schedule['events'])->map(function ($event) {
+                return Event::makeWithData($event);
+            });
+
+            return Schedule::makeWithMetadata(
+                Source::make($schedule['source']['id'], $schedule['source']['name']),
+                $events,
                 $schedule['created_at']
+            );
+        });
+    }
+
+    public function sessions()
+    {
+        $sessions = $this->db->collection(self::SESSIONS_COLLECTION)->get();
+
+        return $this->mapSessions($sessions);
+    }
+
+    public function sessionsByDay()
+    {
+        $sessions = $this->sessions();
+
+        $days = [];
+        foreach ($sessions as $session) {
+            $day = $session->createdAt()->format('d-m-Y');
+            $days[$day][] = $session;
+        }
+
+        return new Collection($days);
+    }
+
+    public function sessionsForEvent($eventId)
+    {
+        $sessions = $this->db->collection(self::SESSIONS_COLLECTION)->where('event.id', $eventId)->get();
+
+        return $this->mapSessions($sessions);
+    }
+
+    public function startSession(Session $session)
+    {
+        return $this->db->collection(self::SESSIONS_COLLECTION)->insert($session->toArray());
+    }
+
+    public function finishSession(Session $session, $output = '')
+    {
+        return $this->db->collection(self::SESSIONS_COLLECTION)
+            ->where('id', $session->id())
+            ->update([
+                'output' => $output,
+                'is_running' => false,
+                'finished_at' => date('Y-m-d H:i:s'),
+            ]);
+    }
+
+    private function mapSessions(Collection $sessions)
+    {
+        return $sessions->map(function ($session) {
+            return Session::make(
+                Source::make($session['source']),
+                Event::makeWithData($session['event']),
+                $session['is_running'],
+                $session['id'],
+                $session['created_at'],
+                $session['finished_at']
             );
         });
     }

@@ -13,13 +13,15 @@ namespace OClock;
 
 use DateTime;
 use Illuminate\Support\Collection;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Console\Scheduling\Schedule as IlluminateSchedule;
 
 /**
  * A schedule containing a series of events with their metadata.
  *
  * @author Abed Halawi <abed.halawi@vinelab.com>
  */
-class Schedule
+class Schedule implements Arrayable
 {
     /**
      * The collection of events.
@@ -36,97 +38,74 @@ class Schedule
     private $createdAt;
 
     /**
-     * This schedule's source id.
+     * The source.
      *
-     * @var string
+     * @var \OClock\Source
      */
-    private $sourceId;
+    private $source;
 
-    /**
-     * This schedule's source name.
-     *
-     * @var string
-     */
-    private $sourceName;
-
-    public function __construct(Collection $events, $sourceId = null, $sourceName = null, DateTime $createdAt = null)
+    public function __construct(Source $source, Collection $events, DateTime $createdAt = null)
     {
+        $this->source = $source;
         $this->events = $events;
         $this->createdAt = ($createdAt) ? $createdAt : new DateTime();
-        $this->sourceName = ($sourceName) ? $sourceName : $this->appName();
-        $this->sourceId = ($sourceId) ? $sourceId : $this->generateSourceId();
     }
 
     /**
-     * Make a new instance of this schedule class.
+     * Make a new instance of this schedule class from the given Illuminate schedule.
+     *
+     * @param \Illuminate\Console\Scheduling\Schedule $schedule
+     *
+     * @return \OClock\Schedule
+     */
+    public static function make(IlluminateSchedule $schedule)
+    {
+        $events = Collection::make($schedule->events())->map(function ($event) {
+            return Event::make($event);
+        });
+
+        return new static(Source::make(), $events);
+    }
+
+    /**
+     * Make a new instance of this schedule class with the given collection of events.
      *
      * @param \Illuminate\Support\Collection $events
      *
-     * @return \OClock\schedule
+     * @return \OClock\Schedule
      */
-    public static function make(Collection $events)
+    public static function makeWithEvents(Source $source, Collection $events)
     {
-        return new static($events);
+        return new static($source, $events);
     }
 
     /**
      * Make a Schedule instance with existing metadata.
      * Used mostly when fetching records from DB.
      *
-     * @param  string $sourceId
-     * @param  string $sourceName
-     * @param  array $events
-     * @param  string $createdAt
+     * @param string $source
+     * @param array  $events
+     * @param string $createdAt
      *
      * @return self
      */
-    public static function makeWithMetadata($sourceId, $sourceName, $events, $createdAt)
+    public static function makeWithMetadata($source, $events, $createdAt)
     {
         if (!$createdAt instanceof DateTime && is_string($createdAt)) {
             $createdAt = new DateTime($createdAt);
         }
 
-        return new static($events, $sourceId, $sourceName, $createdAt);
+        return new static($source, $events, $createdAt);
     }
 
     /**
-     * Generate the identifier for the source of this schedule.
+     * Get the source.
      *
-     * @return string
+     * @return \OClock\Source
      */
-    private function generateSourceId()
+    public function source()
     {
-        return md5(config('app.key'));
-    }
-
-    /**
-     * Get the configured application name.
-     *
-     * @return string
-     */
-    private function appName()
-    {
-        return config('app.name');
-    }
-
-    /**
-     * Get the id of this schedule's source.
-     *
-     * @return string
-     */
-    public function sourceId()
-    {
-        return $this->sourceId;
-    }
-
-    /**
-     * Get the name of this schedule's source.
-     *
-     * @return string
-     */
-    public function sourceName()
-    {
-        return $this->sourceName;
+        return $this->source;
     }
 
     /**
@@ -156,7 +135,11 @@ class Schedule
      */
     public function toArray()
     {
-        return array_merge($this->metadata(), ['events' => $this->events()->toArray()]);
+        return [
+            'source' => $this->metadata(),
+            'events' => $this->events()->toArray(),
+            'created_at' => $this->createdAt()->format('Y-m-d H:i:s'),
+        ];
     }
 
     /**
@@ -166,10 +149,6 @@ class Schedule
      */
     public function metadata()
     {
-        return [
-            'source_id' => $this->sourceId(),
-            'source_name' => $this->sourceName(),
-            'created_at' => $this->createdAt()->format('Y-m-d H:i:s'),
-        ];
+        return $this->source()->toArray();
     }
 }

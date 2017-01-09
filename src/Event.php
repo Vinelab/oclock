@@ -49,6 +49,13 @@ class Event implements Arrayable
     private $description;
 
     /**
+     * The event's command.
+     *
+     * @var string
+     */
+    private $command;
+
+    /**
      * The date when this event has run last.
      *
      * @var DateTime
@@ -62,15 +69,14 @@ class Event implements Arrayable
      */
     private $nextRunDate;
 
-    public function __construct($expression, $description)
+    public function __construct($expression, $description, $command)
     {
+        $this->command = $command;
         $this->expression = $expression;
         $this->description = $description;
 
         $cron = CronExpression::factory($expression);
         $this->isDue = (bool) $cron->isDue();
-        $this->lastRunDate = $cron->getPreviousRunDate();
-        $this->nextRunDate = $cron->getNextRunDate();
 
         $this->id = $this->generateId();
     }
@@ -84,7 +90,25 @@ class Event implements Arrayable
      */
     public static function make(ScheduleEvent $event)
     {
-        return new static($event->getExpression(), $event->getSummaryForDisplay());
+        return new static($event->getExpression(), $event->getSummaryForDisplay(), $event->buildCommand());
+    }
+
+    /**
+     * Make a new instance of this event class with
+     * the given data.
+     *
+     * Required attributes:
+     * - expression
+     * - description
+     * - command
+     *
+     * @param array $data
+     *
+     * @return \OClock\Event
+     */
+    public static function makeWithData(array $data)
+    {
+        return new static($data['expression'], $data['description'], $data['command']);
     }
 
     /**
@@ -118,6 +142,16 @@ class Event implements Arrayable
     }
 
     /**
+     * Get the command that this event runs.
+     *
+     * @return string
+     */
+    public function command()
+    {
+        return $this->command;
+    }
+
+    /**
      * Determine whether this event is due or not.
      *
      * @return bool
@@ -148,6 +182,16 @@ class Event implements Arrayable
     }
 
     /**
+     * Get the path of the log file for this event.
+     *
+     * @return string
+     */
+    public function outputFilePath()
+    {
+        return storage_path('logs/'.$this->id().'.cron.log');
+    }
+
+    /**
      * Get the array representation of this event.
      *
      * @return array
@@ -155,11 +199,10 @@ class Event implements Arrayable
     public function toArray()
     {
         return [
+            'id' => $this->id(),
             'expression' => $this->expression(),
             'description' => $this->description(),
-            'is_due' => $this->isDue(),
-            'last_run_at' => $this->lastRunDate()->format('Y-m-d H:i'),
-            'next_run_at' => $this->nextRunDate()->format('Y-m-d H:i'),
+            'command' => $this->command(),
         ];
     }
 

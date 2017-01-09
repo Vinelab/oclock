@@ -25,24 +25,44 @@ class EventTest extends PHPUnit_Framework_TestCase
     {
         $expression = '* * * * *';
         $description = 'The description of the event to be displayed';
+        $command = 'php artisan kolkhara';
+        $id = md5($expression.$description);
 
         $mEvent = M::mock(ScheduleEvent::class);
         $mEvent->shouldReceive('getExpression')->once()->andReturn($expression)
-            ->shouldReceive('getSummaryForDisplay')->once()->andReturn($description);
+            ->shouldReceive('getSummaryForDisplay')->once()->andReturn($description)
+            ->shouldReceive('buildCommand')->once()->andReturn($command);
 
         $event = Event::make($mEvent);
 
         $this->assertInstanceOf(Event::class, $event);
-        $this->assertEquals(true, $event->isDue());
-        $this->assertEquals(md5($expression.$description), $event->id());
-        $this->assertEquals(date('Y-m-d H:i', strtotime('-1 minutes')), $event->lastRunDate()->format('Y-m-d H:i'));
-        $this->assertEquals(date('Y-m-d H:i', strtotime('+1 minutes')), $event->nextRunDate()->format('Y-m-d H:i'));
+        $this->assertEquals($id, $event->id());
         $this->assertEquals([
             'expression' => $expression,
             'description' => $description,
-            'is_due' => true,
-            'last_run_at' => date('Y-m-d H:i', strtotime('-1 minutes')),
-            'next_run_at' => date('Y-m-d H:i', strtotime('+1 minutes')),
+            'id' => $id,
+            'command' => $command,
+        ], $event->toArray());
+    }
+
+    public function test_making_event_with_given_data()
+    {
+        $expression = '* * * * *';
+        $description = 'The description of the event to be displayed';
+        $command = 'php artisan kolkhara';
+        $id = md5($expression.$description);
+
+        $data = compact('id', 'command', 'description', 'expression');
+
+        $event = Event::makeWithData($data);
+
+        $this->assertInstanceOf(Event::class, $event);
+        $this->assertEquals($id, $event->id());
+        $this->assertEquals([
+            'id' => $id,
+            'command' => $command,
+            'description' => $description,
+            'expression' => $expression,
         ], $event->toArray());
     }
 }

@@ -11,6 +11,7 @@
 
 namespace OClock\Storage;
 
+use OClock\Session;
 use OClock\Schedule;
 
 /**
@@ -32,5 +33,42 @@ interface StoreInterface
      *
      * @return \Illuminate\Support\Collection
      */
-    public function all();
+    public function schedules();
+
+    /**
+     * Get all the sessions.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function sessions();
+
+    /**
+     * Get all the sessions grouped by day
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function sessionsByDay();
+
+    /**
+     * Start a new session in the store
+     * by creating a new session record
+     * with no "finished_at" field.
+     *
+     * @param \OClock\Session $session
+     *
+     * @return bool
+     */
+    public function startSession(Session $session);
+
+    /**
+     * Finish the given session.
+     * - Sets the "finished_at" field to the current date
+     * - Marks the session as no longer running
+     * - Adds the output to the session.
+     *
+     * @param \OClock\Session $session
+     *
+     * @return bool
+     */
+    public function finishSession(Session $session, $output = '');
 }
