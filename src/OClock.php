@@ -11,6 +11,7 @@
 
 namespace OClock;
 
+use Request;
 use Illuminate\Support\Collection;
 use OClock\Storage\StoreInterface;
 use Illuminate\Console\Scheduling\Schedule as IlluminateSchedule;
