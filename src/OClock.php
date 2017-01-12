@@ -51,6 +51,12 @@ class OClock
      */
     public function register(IlluminateSchedule $schedule)
     {
+        // only register when running in console
+        // and it's the schedule:run command
+        if (!in_array('schedule:run', Request::server('argv'))) {
+            return;
+        }
+
         // iterate the schedule's events and:
         // 1. Set the output to be sent to the event's log file
         // 2. hook into the before and after session
@@ -146,7 +152,7 @@ class OClock
     /**
      * Get the session for the given event.
      *
-     * @param  \OClock\Event  $event
+     * @param \OClock\Event $event
      *
      * @return \OClock\Session
      */
@@ -160,7 +166,7 @@ class OClock
     /**
      * Remove the session of the given event.
      *
-     * @param  \OClock\Event  $event
+     * @param \OClock\Event $event
      */
     private function removeEventSession(Event $event)
     {
