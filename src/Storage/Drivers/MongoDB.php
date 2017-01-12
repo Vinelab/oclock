@@ -110,7 +110,7 @@ class MongoDB implements StoreInterface
     {
         return $sessions->map(function ($session) {
             return Session::make(
-                Source::make($session['source']),
+                Source::make($session['source']['id'], $session['source']['name']),
                 Event::makeWithData($session['event']),
                 $session['is_running'],
                 $session['id'],
