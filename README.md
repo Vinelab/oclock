@@ -56,7 +56,16 @@ composer require vinelab/oclock
 ]
 ```
 
-- Update `.env` file with the correct parameters.
+- Update `.env` file with the correct parameters
+```
+# MongoDB
+DB_HOST=localhost
+DB_PORT=27017
+DB_DATABASE=logs
+DB_USERNAME=
+DB_PASSWORD=
+
+```
 
 ## Usage
 
