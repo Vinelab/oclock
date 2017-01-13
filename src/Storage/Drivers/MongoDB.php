@@ -65,14 +65,22 @@ class MongoDB implements StoreInterface
 
     public function sessions()
     {
-        $sessions = $this->db->collection(self::SESSIONS_COLLECTION)->get();
+        $sessions = $this->db->collection(self::SESSIONS_COLLECTION)->take(100)->get();
 
         return $this->mapSessions($sessions);
     }
 
     public function sessionsByDay()
     {
-        $sessions = $this->sessions();
+        $now = date('Y-m-d H:i:s');
+        $yesterday = date('Y-m-d H:i:s', strtotime('-1 day', strtotime($now)));
+        // get today's and yesterday's sessions
+        $sessions = $this->db->collection(self::SESSIONS_COLLECTION)
+            ->where('created_at', '<', $now)
+            ->where('created_at', '>', $yesterday)
+            ->get();
+
+        $sessions = $this->mapSessions($sessions);
 
         $days = [];
         foreach ($sessions as $session) {
