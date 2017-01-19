@@ -83,10 +83,22 @@ class MongoDB implements StoreInterface
         $sessions = $this->mapSessions($sessions);
 
         $days = [];
+        // collect sessions by day
         foreach ($sessions as $session) {
             $day = $session->createdAt()->format('d-m-Y');
             $days[$day][] = $session;
         }
+
+        // sort day sessions by their creation date
+        foreach ($days as $day => $sessions) {
+            usort($sessions, function ($session1, $session2) {
+                return $session2->createdAt() <=> $session1->createdAt();
+            });
+
+            $days[$day] = $sessions;
+        }
+
+        krsort($days);
 
         return new Collection($days);
     }
